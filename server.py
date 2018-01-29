@@ -1,0 +1,121 @@
+from flask import Flask, session, url_for, redirect, request, render_template, abort
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql import text
+import bcrypt
+from datetime import datetime, date, timedelta
+import os
+
+app = Flask(__name__)
+app.secret_key = "sgozzoli"
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+
+# Classi del database
+
+
+class User(db.Model):
+    __tablename__ = 'user'
+    uid = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String, unique=True, nullable=False)
+    passwd = db.Column(db.LargeBinary, nullable=False)
+
+    def __init__(self, username, passwd):
+        self.username = username
+        self.passwd = passwd
+
+    def __repr__(self):
+        return "{}-{}-{}".format(self.uid, self.username, self.passwd)
+
+
+class Laboratorio(db.Model):
+    __tablename__ = 'laboratorio'
+    lid = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String, nullable=False, unique=True)
+    sede = db.Column(db.String, nullable=True)
+    strumenti = db.relationship('Strumento', backref='laboratorio', lazy=True)
+
+    def __init__(self, nome, sede):
+        self.nome = nome
+        self.sede = sede
+
+    def __repr__(self):
+        return "{}, {}".format(self.lid, self.nome)
+
+
+class Strumento(db.Model):
+    __tablename__ = 'strumento'
+    sid = db.Column(db.Integer, primary_key=True)
+    identificatoreEsterno = db.Column(db.Integer, unique=True, nullable=False)
+    nome = db.Column(db.String, unique=True, nullable=False)
+    marca = db.Column(db.String, nullable=True)
+    modello = db.Column(db.String, nullable=True)
+    proto = db.Column(db.Integer, nullable=True)
+    valoreMassimo = db.Column(db.Float, nullable=False)
+    valoreMinimoAllerta = db.Column(db.Float, nullable=False)
+    valoreMassimoAllerta = db.Column(db.Float, nullable=False)
+    laboratorio_id = db.Column(db.Integer, db.ForeignKey('laboratorio.lid'), nullable=False)
+
+    def __init__(self, idee, nome, marca, modello, proto, valoreMassimo, valoreMinimoAllerta, valoreMassimoAllerta):
+        self.identificatoreEsterno = idee
+        self.nome = nome
+        self.marca = marca
+        self.modello = modello
+        self.proto = proto
+        self.valoreMassimo = valoreMassimo
+        self.valoreMinimoAllerta = valoreMinimoAllerta
+        self.valoreMassimoAllerta = valoreMassimoAllerta
+
+    def __repr__(self):
+        return "{}-{}-{}".format(self.sid, self.identificatoreEsterno, self.nome)
+
+
+def login(username, password):
+    user = User.query.filter_by(username=username).first()
+    try:
+        return bcrypt.checkpw(bytes(password, encoding="utf-8"), user.passwd)
+    except AttributeError:
+        # Se non esiste l'Utente
+        return False
+
+
+@app.route("/")
+def page_home():
+    if 'username' not in session:
+        return redirect(url_for('page_login'))
+    else:
+        session.pop('username')
+        return redirect(url_for('page_login'))
+
+
+@app.route("/login", methods=['GET', 'POST'])
+def page_login():
+    if request.method == "GET":
+        return render_template("login.htm")
+    else:
+        if login(request.form['username'], request.form['password']):
+            session['username'] = request.form['username']
+            return redirect(url_for('page_dashboard'))
+        else:
+            abort(403)
+
+
+@app.route("/dashboard", methods=['GET'])
+def page_dashboard():
+    if 'username' not in session or 'username' is None:
+        return redirect(url_for('page_login'))
+    else:
+        return "Tutto ok!"
+
+
+if __name__ == "__main__":
+    # Se non esiste il database viene creato
+    if not os.path.isfile("db.sqlite"):
+        db.create_all()
+        p = bytes("password", encoding="utf-8")
+        cenere = bcrypt.hashpw(p, bcrypt.gensalt())
+        admin = User("admin@admin.com", cenere)
+        db.session.add(admin)
+        db.session.commit()
+app.run()
