@@ -1,6 +1,13 @@
 <nav class="navbar navbar-dark bg-dark navbar-static-top">
     <a class="navbar-brand" href="/dashboard">Monitoraggio</a>
     {% if utente %}
+        <ul class="nav">
+        {% for laboratorio in laboratori %}
+            <li class="nav-item">
+                <a class="nav-link active" href="#">{{ laboratorio.nome }}</a>
+            </li>
+        {% endfor %}
+        </ul>
         <a href="/" class="btn btn-danger">Logout</a>
     {% else %}
     {% endif %}
