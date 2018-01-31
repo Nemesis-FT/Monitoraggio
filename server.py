@@ -166,6 +166,17 @@ def page_laboratorio_add():
             return redirect(url_for('page_dashboard'))
 
 
+@app.route("/list_laboratorio", methods=['GET', 'POST'])
+def page_laboratorio_list():
+    if 'username' not in session or 'username' is None:
+        return redirect(url_for('page_login'))
+    else:
+        if request.method == "GET":
+            utente = find_user(session['username'])
+            laboratori = Laboratorio.query.all()
+            return render_template("/laboratorio/list.htm", utente=utente, laboratori=laboratori)
+
+
 if __name__ == "__main__":
     # Se non esiste il database viene creato
     #if not os.path.isfile("db.sqlite"):
