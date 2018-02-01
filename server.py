@@ -59,8 +59,8 @@ class Strumento(db.Model):
     valore_massimo_allerta = db.Column(db.Float, nullable=False)
     laboratorio_id = db.Column(db.Integer, db.ForeignKey('laboratorio.lid'), nullable=False)
 
-    def __init__(self, idee, nome, marca, modello, proto, valore_massimo, valore_minimo_allerta,
-                 valore_massimo_allerta):
+    def __init__(self, idee, nome, marca, modello, proto, fs, valore_massimo, valore_minimo_allerta,
+                 valore_massimo_allerta, laboratorio_id):
         self.identificatore_esterno = idee
         self.nome = nome
         self.marca = marca
@@ -69,6 +69,8 @@ class Strumento(db.Model):
         self.valore_massimo = valore_massimo
         self.valore_minimo_allerta = valore_minimo_allerta
         self.valore_massimo_allerta = valore_massimo_allerta
+        self.laboratorio_id = laboratorio_id
+        self.valore_massimo = fs
 
     def __repr__(self):
         return "{}-{}-{}".format(self.sid, self.identificatore_esterno, self.nome)
@@ -95,7 +97,7 @@ class Log(db.Model):
     loid = db.Column(db.Integer, primary_key=True)
     livello = db.Column(db.Integer, nullable=False)
     error = db.Column(db.String, nullable=False)
-    data = db.Column(db.DateTime, nullable=True) # Solo per scopo di test
+    data = db.Column(db.DateTime, nullable=True)  # Solo per scopo di test
     strumento_id = db.Column(db.Integer, nullable=False)
     strumName = db.Column(db.String, nullable=False)
     laboratorio_id = db.Column(db.Integer, db.ForeignKey("laboratorio.lid"))
@@ -189,8 +191,27 @@ def page_laboratorio_details(lid):
         entita = Laboratorio.query.get_or_404(lid)
         strumenti = Laboratorio.query.filter_by(lid=lid).join(Strumento).all()
         logs = Laboratorio.query.filter_by(lid=lid).join(Log).all()
-        print(strumenti[0].strumenti)
-        return render_template("/laboratorio/details.htm", utente=utente, laboratori=laboratori, strumenti=strumenti, logs=logs, entita=entita)
+        return render_template("/laboratorio/details.htm", utente=utente, laboratori=laboratori, strumenti=strumenti,
+                               logs=logs, entita=entita)
+
+
+@app.route("/add_strumento", methods=['GET', 'POST'])
+def page_strumento_add():
+    if 'username' not in session or 'username' is None:
+        return redirect(url_for('page_login'))
+    else:
+        if request.method == 'GET':
+            utente = find_user(session['username'])
+            laboratori = Laboratorio.query.all()
+            return render_template("/strumenti/add.htm", utente=utente, laboratori=laboratori)
+        else:
+            nuovo_strumento = Strumento(request.form['iden'], request.form['nome'], request.form['marca'],
+                                        request.form['modello'], request.form['proto'], request.form['fs'],
+                                        request.form['vma'], request.form['vMa'],
+                                        request.form['lab'])
+            db.session.add(nuovo_strumento)
+            db.session.commit()
+            return redirect(url_for('page_dashboard'))
 
 
 @app.route("/list_log/<int:valore>/<int:mode>")
@@ -200,7 +221,7 @@ def page_log_list(valore, mode):
     else:
         utente = find_user(session['username'])
         laboratori = Laboratorio.query.all()
-        if mode == 0: #ricerca per strumento
+        if mode == 0:  # ricerca per strumento
             logs = Log.query.filter_by(strumento_id=valore).all()
         else:
             logs = Log.query.filter_by(laboratorio_id=valore).all()
@@ -209,11 +230,11 @@ def page_log_list(valore, mode):
 
 if __name__ == "__main__":
     # Se non esiste il database viene creato
-    if not os.path.isfile("db.sqlite"):
-       db.create_all()
-       p = bytes("password", encoding="utf-8")
-       cenere = bcrypt.hashpw(p, bcrypt.gensalt())
-       admin = User("admin@admin.com", cenere)
-       db.session.add(admin)
-       db.session.commit()
+    # if not os.path.isfile("db.sqlite"):
+    #    db.create_all()
+    #    p = bytes("password", encoding="utf-8")
+    #    cenere = bcrypt.hashpw(p, bcrypt.gensalt())
+    #    admin = User("admin@admin.com", cenere)
+    #    db.session.add(admin)
+    #    db.session.commit()
     app.run()
