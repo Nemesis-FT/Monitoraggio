@@ -36,6 +36,7 @@ class Laboratorio(db.Model):
     sede = db.Column(db.String, nullable=True)
     strumenti = db.relationship('Strumento', backref='laboratorio', lazy=True)
     bot = db.relationship("Bot", back_populates="laboratorio")
+    log = db.relationship("Log")
 
     def __init__(self, nome, sede):
         self.nome = nome
@@ -57,9 +58,9 @@ class Strumento(db.Model):
     valore_minimo_allerta = db.Column(db.Float, nullable=False)
     valore_massimo_allerta = db.Column(db.Float, nullable=False)
     laboratorio_id = db.Column(db.Integer, db.ForeignKey('laboratorio.lid'), nullable=False)
-    log = db.relationship("Log")
 
-    def __init__(self, idee, nome, marca, modello, proto, valore_massimo, valore_minimo_allerta, valore_massimo_allerta):
+    def __init__(self, idee, nome, marca, modello, proto, valore_massimo, valore_minimo_allerta,
+                 valore_massimo_allerta):
         self.identificatore_esterno = idee
         self.nome = nome
         self.marca = marca
@@ -70,7 +71,7 @@ class Strumento(db.Model):
         self.valore_massimo_allerta = valore_massimo_allerta
 
     def __repr__(self):
-        return "{}-{}-{}".format(self.sid, self.identificatoreEsterno, self.nome)
+        return "{}-{}-{}".format(self.sid, self.identificatore_esterno, self.nome)
 
 
 class Bot(db.Model):
@@ -91,11 +92,13 @@ class Bot(db.Model):
 
 class Log(db.Model):
     __tablename__ = "log"
-    lid = db.Column(db.Integer, primary_key=True)
+    loid = db.Column(db.Integer, primary_key=True)
     livello = db.Column(db.Integer, nullable=False)
-    error = db.Column(db.Integer, nullable=False)
-    data = db.Column(db.DateTime, nullable=False)
-    strumento_id = db.Column(db.Integer, db.ForeignKey("strumento.sid"))
+    error = db.Column(db.String, nullable=False)
+    data = db.Column(db.DateTime, nullable=True) # Solo per scopo di test
+    strumento_id = db.Column(db.Integer, nullable=False)
+    strumName = db.Column(db.String, nullable=False)
+    laboratorio_id = db.Column(db.Integer, db.ForeignKey("laboratorio.lid"))
 
     def __init__(self, livello, error, data):
         self.livello = livello
@@ -103,7 +106,7 @@ class Log(db.Model):
         self.data = data
 
     def __repr__(self):
-        return "{}-{}-{}".format(self.lid, self.strumento_id, self.data)
+        return "{}-{}-{}".format(self.loid, self.laboratorio_id, self.data)
 
 
 def login(username, password):
@@ -166,24 +169,51 @@ def page_laboratorio_add():
             return redirect(url_for('page_dashboard'))
 
 
-@app.route("/list_laboratorio", methods=['GET', 'POST'])
+@app.route("/list_laboratorio")
 def page_laboratorio_list():
     if 'username' not in session or 'username' is None:
         return redirect(url_for('page_login'))
     else:
-        if request.method == "GET":
-            utente = find_user(session['username'])
-            laboratori = Laboratorio.query.all()
-            return render_template("/laboratorio/list.htm", utente=utente, laboratori=laboratori)
+        utente = find_user(session['username'])
+        laboratori = Laboratorio.query.all()
+        return render_template("/laboratorio/list.htm", utente=utente, laboratori=laboratori)
+
+
+@app.route("/details_laboratorio/<int:lid>")
+def page_laboratorio_details(lid):
+    if 'username' not in session or 'username' is None:
+        return redirect(url_for('page_login'))
+    else:
+        utente = find_user(session['username'])
+        laboratori = Laboratorio.query.all()
+        entita = Laboratorio.query.get_or_404(lid)
+        strumenti = Laboratorio.query.filter_by(lid=lid).join(Strumento).all()
+        logs = Laboratorio.query.filter_by(lid=lid).join(Log).all()
+        print(strumenti[0].strumenti)
+        return render_template("/laboratorio/details.htm", utente=utente, laboratori=laboratori, strumenti=strumenti, logs=logs, entita=entita)
+
+
+@app.route("/list_log/<int:valore>/<int:mode>")
+def page_log_list(valore, mode):
+    if 'username' not in session or 'username' is None:
+        return redirect(url_for('page_login'))
+    else:
+        utente = find_user(session['username'])
+        laboratori = Laboratorio.query.all()
+        if mode == 0: #ricerca per strumento
+            logs = Log.query.filter_by(strumento_id=valore).all()
+        else:
+            logs = Log.query.filter_by(laboratorio_id=valore).all()
+        return render_template("/log/list.htm", utente=utente, laboratori=laboratori, logs=logs)
 
 
 if __name__ == "__main__":
     # Se non esiste il database viene creato
-    #if not os.path.isfile("db.sqlite"):
-    #    db.create_all()
-    #    p = bytes("password", encoding="utf-8")
-    #    cenere = bcrypt.hashpw(p, bcrypt.gensalt())
-    #    admin = User("admin@admin.com", cenere)
-    #    db.session.add(admin)
-    #    db.session.commit()
+    if not os.path.isfile("db.sqlite"):
+       db.create_all()
+       p = bytes("password", encoding="utf-8")
+       cenere = bcrypt.hashpw(p, bcrypt.gensalt())
+       admin = User("admin@admin.com", cenere)
+       db.session.add(admin)
+       db.session.commit()
     app.run()

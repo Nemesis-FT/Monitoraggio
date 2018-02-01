@@ -1,0 +1,21 @@
+{% extends "stampo.htm" %}
+{% block title %}Log - Monitoraggio{% endblock %}
+{% block content %}
+    <h1>Lista dei Log</h1>
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            <th>Data</th>
+            <th>Descrizione errore</th>
+            <th>Strumento</th>
+        </tr>
+        </thead>
+        {% for log in logs %}
+            <tr>
+                <td>{{ log.data }}</td>
+                <td>{{ log.error }}</td>
+                <td> <a href="/list_log/{{ log.strumento_id }}/0">{{ log.strumName }}({{ log.strumento_id }})</a></td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

@@ -4,7 +4,7 @@
         <ul class="nav">
         {% for laboratorio in laboratori %}
             <li class="nav-item">
-                <a class="nav-link active" href="#">{{ laboratorio.nome }}</a>
+                <a class="nav-link active" href="/details_laboratorio/{{ laboratorio.lid }}">{{ laboratorio.nome }}</a>
             </li>
         {% endfor %}
         </ul>

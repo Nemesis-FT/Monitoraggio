@@ -1,0 +1,37 @@
+{% extends "stampo.htm" %}
+{% block title %}{{ entita.nome }} - Monitoraggio{% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="col-md-6">
+            <div class="jumbotron">
+                <h1>Laboratorio {{ entita.nome }}</h1>
+                <h5>Sede: {{ entita.sede }}</h5>
+                <br>
+                <h5>Questo laboratorio è servito dal seguente bot: </h5>
+            </div>
+            <a href="/list_log/{{ entita.lid }}/1"><button type="button" class="btn btn-primary btn-block">Log del Laboratorio</button></a>
+        </div>
+        <div class="col-md-6">
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Identificatore</th>
+                    <th>Valori di allerta</th>
+                    <th>Azioni</th>
+                </tr>
+                </thead>
+                {% for strumento in strumenti[0].strumenti %}
+                    <tr>
+                        <td>{{ strumento.nome }}</td>
+                        <td>{{ strumento.identificatore_esterno }}</td>
+                        <td>{{ strumento.valore_minimo_allerta }} - {{ strumento.valore_massimo_allerta }}</td>
+                        <td> <a href="/list_log/{{ entita.lid }}/0"><i class="fa fa-search" aria-hidden="true"></i></a> <i class="fa fa-pencil"
+                                                                               aria-hidden="true"></i> <i
+                                class="fa fa-times" aria-hidden="true"></i></td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+{% endblock %}
