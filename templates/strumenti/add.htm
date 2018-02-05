@@ -22,7 +22,9 @@
                 <input type="text" class="form-control" id="modello" placeholder="1" name="modello">
             </div>
             <div class="form-group col-md-4">
-                <select class="custom-select" id="proto">
+                <label for="proto" class="col-form-label">Protocollo</label>
+                <br>
+                <select class="custom-select" id="proto" name="proto">
                     <option selected>Seleziona...</option>
                     <option value="1">Seriale</option>
                     <option value="2">LAN</option>
@@ -44,12 +46,16 @@
             </div>
         </div>
         <div class="form-row">
-            <select class="custom-select" id="lab">
-                <option selected>Seleziona...</option>
-                {% for laboratorio in laboratori %}
-                    <option value="{{ laboratorio.lid }}">{{ laboratorio.nome }}</option>
-                {% endfor %}
-            </select>
+            <div class="form-group col-md-4">
+                <label for="lab" class="col-form-label">Laboratorio</label>
+                <br>
+                <select class="custom-select" id="lab" name="lab">
+                    <option selected>Seleziona...</option>
+                    {% for laboratorio in laboratori %}
+                        <option value="{{ laboratorio.lid }}">{{ laboratorio.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
         </div>
         <div class="form-group row">
             <button type="submit" class="btn btn-primary btn-block">Salva</button>

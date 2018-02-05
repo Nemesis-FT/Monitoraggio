@@ -1,0 +1,13 @@
+{% extends "stampo.htm" %}
+{% block title %}Dettagli dispositivo - Monitoraggio{% endblock %}
+{% block content %}
+    <h1>Informazioni sul dispositivo</h1>
+    <ul class="list-group">
+        <li class="list-group-item active"><strong>Identificativo e Nome: </strong>{{ strumento.identificatore_esterno }} - {{ strumento.nome }}</li>
+        <li class="list-group-item"><strong>Marca e modello: </strong>{{ strumento.marca }} / {{ strumento.modello }}</li>
+        <li class="list-group-item"><strong>Protocollo di comunicazione: </strong>{% if strumento.proto == 1 %}Seriale{% else %}Lan{% endif %}</li>
+        <li class="list-group-item"><strong>Laboratorio</strong>: {{ strumento.laboratorio.nome }}</li>
+        <li class="list-group-item"><strong>Valore fondo scala e valori di allerta: </strong>{{ strumento.valore_massimo }}, {{ strumento.valore_minimo_allerta }} (minimo)/{{ strumento.valore_massimo_allerta }}</li>
+        <li class="list-group-item">Operazioni possibili:</li>
+    </ul>
+{% endblock %}

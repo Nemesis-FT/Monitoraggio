@@ -1,0 +1,23 @@
+{% extends "stampo.htm" %}
+{% block title %}Lista Bot - Monitoraggio{% endblock %}
+{% block content %}
+<h1>Lista dei Bot</h1>
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            <th>Nome Bot</th>
+            <th>Laboratorio</th>
+            <th>Token</th>
+            <th>Azioni</th>
+        </tr>
+        </thead>
+        {% for bot in bots %}
+            <tr>
+                <td>{{ bot.nome }}</td>
+                <td>{{ bot.laboratorio.nome }}</td>
+                <td>{{ bot.token }}</td>
+                <td></td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

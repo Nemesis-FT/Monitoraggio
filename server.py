@@ -4,6 +4,8 @@ from sqlalchemy.sql import text
 import bcrypt
 from datetime import datetime, date, timedelta
 import os
+import random
+import string
 
 app = Flask(__name__)
 app.secret_key = "sgozzoli"
@@ -59,14 +61,13 @@ class Strumento(db.Model):
     valore_massimo_allerta = db.Column(db.Float, nullable=False)
     laboratorio_id = db.Column(db.Integer, db.ForeignKey('laboratorio.lid'), nullable=False)
 
-    def __init__(self, idee, nome, marca, modello, proto, fs, valore_massimo, valore_minimo_allerta,
+    def __init__(self, idee, nome, marca, modello, proto, fs, valore_minimo_allerta,
                  valore_massimo_allerta, laboratorio_id):
         self.identificatore_esterno = idee
         self.nome = nome
         self.marca = marca
         self.modello = modello
         self.proto = proto
-        self.valore_massimo = valore_massimo
         self.valore_minimo_allerta = valore_minimo_allerta
         self.valore_massimo_allerta = valore_massimo_allerta
         self.laboratorio_id = laboratorio_id
@@ -84,9 +85,10 @@ class Bot(db.Model):
     token = db.Column(db.String, nullable=False)
     nome = db.Column(db.String)
 
-    def __init__(self, token, nome):
+    def __init__(self, token, nome, laboratorio):
         self.token = token
         self.nome = nome
+        self.laboratorio_id = laboratorio
 
     def __repr__(self):
         return "{}-{}-{}".format(self.bid, self.nome, self.token)
@@ -111,6 +113,10 @@ class Log(db.Model):
         return "{}-{}-{}".format(self.loid, self.laboratorio_id, self.data)
 
 
+def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
+    return ''.join(random.choice(chars) for _ in range(size))
+
+
 def login(username, password):
     user = User.query.filter_by(username=username).first()
     try:
@@ -131,6 +137,11 @@ def page_home():
     else:
         session.pop('username')
         return redirect(url_for('page_login'))
+
+
+@app.route("/monitoraggio", methods=["GET","POST"])
+def page_monitoraggio():
+    pass
 
 
 @app.route("/login", methods=['GET', 'POST'])
@@ -190,7 +201,7 @@ def page_laboratorio_details(lid):
         laboratori = Laboratorio.query.all()
         entita = Laboratorio.query.get_or_404(lid)
         strumenti = Laboratorio.query.filter_by(lid=lid).join(Strumento).all()
-        logs = Laboratorio.query.filter_by(lid=lid).join(Log).all()
+        logs = Laboratorio.query.filter_by(lid=lid).join(Log).all()  # TODO: Da rimuovoere
         return render_template("/laboratorio/details.htm", utente=utente, laboratori=laboratori, strumenti=strumenti,
                                logs=logs, entita=entita)
 
@@ -214,6 +225,18 @@ def page_strumento_add():
             return redirect(url_for('page_dashboard'))
 
 
+@app.route("/details_strumento/<int:sid>", methods=['GET'])
+def page_strumento_details(sid):
+    if 'username' not in session or 'username' is None:
+        return redirect(url_for('page_login'))
+    else:
+        if request.method == 'GET':
+            strumento = Strumento.query.filter_by(sid=sid).join(Laboratorio).first()
+            utente = find_user(session['username'])
+            laboratori = Laboratorio.query.all()
+            return render_template("/strumenti/details.htm", utente=utente, laboratori=laboratori, strumento=strumento)
+
+
 @app.route("/list_log/<int:valore>/<int:mode>")
 def page_log_list(valore, mode):
     if 'username' not in session or 'username' is None:
@@ -226,6 +249,34 @@ def page_log_list(valore, mode):
         else:
             logs = Log.query.filter_by(laboratorio_id=valore).all()
         return render_template("/log/list.htm", utente=utente, laboratori=laboratori, logs=logs)
+
+
+@app.route("/list_bot")
+def page_bot_list():
+    if 'username' not in session or 'username' is None:
+        return redirect(url_for('page_login'))
+    else:
+        utente = find_user(session['username'])
+        laboratori = Laboratorio.query.all()
+        bots = Bot.query.join(Laboratorio).all()
+        return render_template("/bot/list.htm", utente=utente, laboratori=laboratori, bots=bots)
+
+
+@app.route("/add_bot", methods=['GET', 'POST'])
+def page_bot_add():
+    if 'username' not in session or 'username' is None:
+        return redirect(url_for('page_login'))
+    else:
+        if request.method == 'GET':
+            utente = find_user(session['username'])
+            laboratori = Laboratorio.query.all()
+            return render_template("/bot/add.htm", utente=utente, laboratori=laboratori)
+        else:
+            token = id_generator()
+            nuovo_bot = Bot(token, request.form['nome'], request.form['lab'])
+            db.session.add(nuovo_bot)
+            db.session.commit()
+            return redirect(url_for('page_dashboard'))
 
 
 if __name__ == "__main__":

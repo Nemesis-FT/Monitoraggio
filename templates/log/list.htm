@@ -14,7 +14,7 @@
             <tr>
                 <td>{{ log.data }}</td>
                 <td>{{ log.error }}</td>
-                <td> <a href="/list_log/{{ log.strumento_id }}/0">{{ log.strumName }}({{ log.strumento_id }})</a></td>
+                <td> <a href="/list_log/{{ log.strumento_id }}/0">{{ log.strumName }}({{ log.strumento_id }})</a><a href="/details_strumento/{{ log.strumento_id }}"><i class="fas fa-search" aria-hidden="true"></i></a></td>
             </tr>
         {% endfor %}
     </table>
