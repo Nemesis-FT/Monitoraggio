@@ -314,6 +314,23 @@ def page_bot_add():
             return redirect(url_for('page_dashboard'))
 
 
+@app.route('/ricerca', methods=["GET", "POST"])  # Funzione scritta da Stefano Pigozzi nel progetto Estus
+def page_ricerca():
+    if 'username' not in session:
+        return abort(403)
+    else:
+        utente = find_user(session['username'])
+        laboratori = Laboratorio.query.all()
+        if request.method == 'GET':
+            return render_template("query.htm", utente=utente, laboratori=laboratori)
+        else:
+            try:
+                result = db.engine.execute("SELECT " + request.form["query"] + ";")
+            except Exception as e:
+                return render_template("query.htm", query=request.form["query"], error=repr(e), utente=utente, laboratori=laboratori)
+            return render_template("query.htm", query=request.form["query"], result=result, utente=utente, laboratori=laboratori)
+
+
 if __name__ == "__main__":
     # Se non esiste il database viene creato
     # if not os.path.isfile("db.sqlite"):
