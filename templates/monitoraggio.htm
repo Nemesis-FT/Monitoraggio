@@ -1,0 +1,79 @@
+{% extends "stampo.htm" %}
+{% block title %}Monitoraggio{% endblock %}
+{% block extrahead %}
+    <script type="text/javascript">
+        function labsense(id) {
+            var xhr = new XMLHttpRequest();
+            document.getElementById("corpoTabellaRicerca").innerHTML = ""
+            xhr.addEventListener("readystatechange", function () {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    document.getElementById("strumdrop").innerHTML = xhr.responseText;
+                }
+            });
+            xhr.open("POST", "/strumquery", true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            var parametri = "lab=" + id;
+            xhr.send(parametri);
+        }
+
+        function strumsense(sid) {
+            var xhr = new XMLHttpRequest();
+            document.getElementById("corpoTabellaRicerca").innerHTML = ""
+            xhr.addEventListener("readystatechange", function () {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    document.getElementById("corpoTabellaRicerca").innerHTML = xhr.responseText;
+                }
+            });
+            xhr.open("POST", "/logquery", true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            var parametri = "strum=" + sid;
+            xhr.send(parametri);
+        }
+    </script>
+{% endblock %}
+{% block content %}
+    <div class="jumbotron">
+        <h1 class="display-3">Bentornato su Monitoraggio</h1>
+        <p class="lead">Su questa pagina è possibile esaminare i log più recenti, filtrati per Laboratorio e
+            Strumento.</p>
+        <p class="lead">Per modificare i dati nel database, cliccare sul pulsante "Amministrazione".</p>
+    </div>
+    <div class="col-md-6">
+    Ricerca Avanzata
+    <div class="btn-group" role="group">
+        <button id="Laboratori" type="button" class="btn btn-info dropdown-toggle btn-block" data-toggle="dropdown"
+                aria-haspopup="true" aria-expanded="false">
+            Laboratorio
+        </button>
+        <div class="dropdown-menu" aria-labelledby="Laboratori">
+            {% for laboratorio in laboratori %}
+                <a class="dropdown-item" onclick="labsense({{ laboratorio.lid }})">{{ laboratorio.nome }}</a>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="btn-group" role="group">
+        <button id="Strumenti" type="button" class="btn btn-info dropdown-toggle btn-block" data-toggle="dropdown"
+                aria-haspopup="true" aria-expanded="false">
+            Strumenti
+        </button>
+        <div class="dropdown-menu" aria-labelledby="Strumenti" id="strumdrop">
+
+        </div>
+    </div>
+    </div>
+    <div class="col-md-6">
+    </div>
+    <br>
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            <th>Ora</th>
+            <th>Descrizione</th>
+            <th>Azioni</th>
+        </tr>
+        </thead>
+        <tbody id="corpoTabellaRicerca">
+
+        </tbody>
+    </table>
+{% endblock %}

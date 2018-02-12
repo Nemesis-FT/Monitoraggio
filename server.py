@@ -139,9 +139,44 @@ def page_home():
         return redirect(url_for('page_login'))
 
 
-@app.route("/monitoraggio", methods=["GET","POST"])
+@app.route("/monitoraggio", methods=["GET", "POST"])
 def page_monitoraggio():
-    pass
+    if 'username' not in session or 'username' is None:
+        return redirect(url_for('page_login'))
+    if request.method == "GET":
+        logs = Log.query.limit(100).all()
+        utente = find_user(session['username'])
+        laboratori = Laboratorio.query.all()
+        return render_template("monitoraggio.htm", utente=utente, laboratori=laboratori, logs=logs)
+
+
+@app.route("/strumquery", methods=['POST']) # Queste funzioni sono orrende.
+def page_strumquery():
+    if 'username' not in session or 'username' is None:
+        abort(403)
+    print(request.form['lab'])
+    risultato = Strumento.query.filter_by(laboratorio_id=request.form['lab']).all()
+    msg = ""
+    for entita in risultato:
+        msg = msg + "<a class=\"dropdown-item\" onclick=\"strumsense(" + str(entita.sid) + ")\">" + entita.nome + "</a>\n"
+    return msg
+
+
+@app.route("/logquery", methods=['POST'])
+def page_logquery():
+    if 'username' not in session or 'username' is None:
+        abort(403)
+    risultato = Log.query.filter_by(strumento_id=request.form['strum']).all()
+    msg = ""
+    for entita in risultato:
+        msg = msg + """
+        <tr>
+                <td>{}</td>
+                <td>{}</td>
+                <td> </td>
+        </tr>
+        """.format(entita.data, entita.error)
+    return msg
 
 
 @app.route("/login", methods=['GET', 'POST'])
@@ -151,7 +186,7 @@ def page_login():
     else:
         if login(request.form['username'], request.form['password']):
             session['username'] = request.form['username']
-            return redirect(url_for('page_dashboard'))
+            return redirect(url_for('page_monitoraggio'))
         else:
             abort(403)
 
