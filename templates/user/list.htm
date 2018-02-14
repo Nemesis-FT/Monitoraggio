@@ -1,0 +1,21 @@
+{% extends "stampo.htm" %}
+{% block title %}Lista utenti - Monitoraggio{% endblock %}
+{% block content %}
+    <h1>Utemto immessi nel sistema</h1>
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            <th>Nome</th>
+            <th>Username</th>
+            <th>Azioni</th>
+        </tr>
+        </thead>
+        {% for utenza in utenze %}
+            <tr>
+                <td>{{ utenza.nome }}</td>
+                <td>{{ utenza.username }}</td>
+                <td></td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

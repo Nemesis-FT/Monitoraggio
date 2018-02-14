@@ -22,10 +22,12 @@ class User(db.Model):
     uid = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String, unique=True, nullable=False)
     passwd = db.Column(db.LargeBinary, nullable=False)
+    nome = db.Column(db.String)
 
-    def __init__(self, username, passwd):
+    def __init__(self, username, passwd, nome):
         self.username = username
         self.passwd = passwd
+        self.nome = nome
 
     def __repr__(self):
         return "{}-{}-{}".format(self.uid, self.username, self.passwd)
@@ -353,13 +355,41 @@ def page_recv_bot():
     else:
         abort(403)
 
+
+@app.route('/add_user', methods=["GET", "POST"])
+def page_add_user():
+    if 'username' not in session:
+        return abort(403)
+    else:
+        if request.method == "GET":
+            utente = find_user(session['username'])
+            laboratori = Laboratorio.query.all()
+            return render_template("/user/add.htm", utente=utente, laboratori=laboratori)
+        else:
+            nuovo_utente = User(request.form['email'], bcrypt.hashpw(bytes(request.form['password'], encoding="utf-8"), bcrypt.gensalt()), request.form['nome'])
+            db.session.add(nuovo_utente)
+            db.session.commit()
+            return redirect(url_for('page_dashboard'))
+
+
+@app.route('/list_user', methods=["GET"])
+def page_list_user():
+    if 'username' not in session:
+        return abort(403)
+    else:
+        utente = find_user(session['username'])
+        laboratori = Laboratorio.query.all()
+        utenze = User.query.all()
+        return render_template("/user/list.htm", utente=utente, laboratori=laboratori, utenze=utenze)
+
+
 if __name__ == "__main__":
     # Se non esiste il database viene creato
     # if not os.path.isfile("db.sqlite"):
     #    db.create_all()
     #    p = bytes("password", encoding="utf-8")
     #    cenere = bcrypt.hashpw(p, bcrypt.gensalt())
-    #    admin = User("admin@admin.com", cenere)
+    #    admin = User("admin@admin.com", cenere, "Amministratore")
     #    db.session.add(admin)
     #    db.session.commit()
     app.run()
