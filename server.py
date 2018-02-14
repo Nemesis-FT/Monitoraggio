@@ -51,7 +51,7 @@ class Laboratorio(db.Model):
 class Strumento(db.Model):
     __tablename__ = 'strumento'
     sid = db.Column(db.Integer, primary_key=True)
-    identificatore_esterno = db.Column(db.Integer, unique=True, nullable=False)
+    identificatore_esterno = db.Column(db.Integer, nullable=False)
     nome = db.Column(db.String, unique=True, nullable=False)
     marca = db.Column(db.String, nullable=True)
     modello = db.Column(db.String, nullable=True)
@@ -104,10 +104,13 @@ class Log(db.Model):
     strumName = db.Column(db.String, nullable=False)
     laboratorio_id = db.Column(db.Integer, db.ForeignKey("laboratorio.lid"))
 
-    def __init__(self, livello, error, data):
-        self.livello = livello
+    def __init__(self, tipo, error, data, laboratorio_id, strumento_id, strumName):
+        self.livello = tipo
         self.error = error
         self.data = data
+        self.laboratorio_id = laboratorio_id
+        self.strumento_id = strumento_id
+        self.strumName = strumName
 
     def __repr__(self):
         return "{}-{}-{}".format(self.loid, self.laboratorio_id, self.data)
@@ -330,6 +333,25 @@ def page_ricerca():
                 return render_template("query.htm", query=request.form["query"], error=repr(e), utente=utente, laboratori=laboratori)
             return render_template("query.htm", query=request.form["query"], result=result, utente=utente, laboratori=laboratori)
 
+
+@app.route('/recv_bot', methods=["POST"])
+def page_recv_bot():
+    labId = request.form['labId']
+    token = request.form['token']
+    strum_id = request.form['strumId']
+    message = request.form['message']
+    type = request.form['type']
+    if Bot.query.filter_by(laboratorio_id=labId, token=token).all():
+        strumento = Strumento.query.filter_by(identificatore_esterno=strum_id, laboratorio_id=labId).first()
+        if strumento:
+            nuovolog = Log(type, message, datetime.today(), labId, strumento.sid, strumento.nome)
+            db.session.add(nuovolog)
+            db.session.commit()
+            return "200 - QUERY OK, DATA INSERT SUCCESSFUL."
+        else:
+            abort(404)
+    else:
+        abort(403)
 
 if __name__ == "__main__":
     # Se non esiste il database viene creato

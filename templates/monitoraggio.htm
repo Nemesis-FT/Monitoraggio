@@ -38,46 +38,100 @@
             Strumento.</p>
         <p class="lead">Per modificare i dati nel database, cliccare sul pulsante "Amministrazione".</p>
     </div>
-    <div class="row">
-        <div class="col-md-6">
-            <div class="btn-group" role="group">
-                <button id="Laboratori" type="button" class="btn btn-info dropdown-toggle btn-block"
-                        data-toggle="dropdown"
-                        aria-haspopup="true" aria-expanded="false">
-                    Laboratorio
-                </button>
-                <div class="dropdown-menu" aria-labelledby="Laboratori">
-                    {% for laboratorio in laboratori %}
-                        <a class="dropdown-item" onclick="labsense({{ laboratorio.lid }})">{{ laboratorio.nome }}</a>
-                    {% endfor %}
-                </div>
-            </div>
-            <div class="btn-group" role="group">
-                <button id="Strumenti" type="button" class="btn btn-info dropdown-toggle btn-block"
-                        data-toggle="dropdown"
-                        aria-haspopup="true" aria-expanded="false">
-                    Strumenti
-                </button>
-                <div class="dropdown-menu" aria-labelledby="Strumenti" id="strumdrop">
+    <div class="card card-d">
+        <div class="card-header card-header-d" role="tab" id="headingTwo">
+            <h5 class="mb-0">
+                <a class="collapsed" data-toggle="collapse" href="#collapseTwo" aria-expanded="false"
+                   aria-controls="collapseTwo">
+                    Ricerca
+                </a>
+            </h5>
+        </div>
+        <div id="collapseTwo" class="collapse" role="tabpanel" aria-labelledby="headingTwo"
+             data-parent="#accordion">
+            <div class="card-body card-body-d-m">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="btn-group" role="group">
+                            <button id="Laboratori" type="button" class="btn btn-info dropdown-toggle btn-block"
+                                    data-toggle="dropdown"
+                                    aria-haspopup="true" aria-expanded="false">
+                                Laboratorio
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="Laboratori">
+                                {% for laboratorio in laboratori %}
+                                    <a class="dropdown-item"
+                                       onclick="labsense({{ laboratorio.lid }})">{{ laboratorio.nome }}</a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="btn-group" role="group">
+                            <button id="Strumenti" type="button" class="btn btn-info dropdown-toggle btn-block"
+                                    data-toggle="dropdown"
+                                    aria-haspopup="true" aria-expanded="false">
+                                Strumenti
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="Strumenti" id="strumdrop">
 
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="/ricerca" class="btn btn-warning btn-block">Query Avanzata</a>
+                    </div>
+                </div>
+                <br>
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th>Ora</th>
+                        <th>Descrizione</th>
+                        <th>Azioni</th>
+                    </tr>
+                    </thead>
+                    <tbody id="corpoTabellaRicerca">
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div id="accordion" role="tablist" class="fg-primary">
+            <div class="card card-d">
+                <div class="card-header card-header-d" role="tab" id="headingOne">
+                    <h5 class="mb-0">
+                        <a data-toggle="collapse" href="#collapseOne" aria-expanded="true"
+                           aria-controls="collapseOne">
+                            Ultimi 100 log
+                        </a>
+                    </h5>
+                </div>
+
+                <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne"
+                     data-parent="#accordion">
+                    <div class="card-body card-body-d-m">
+                        <table class="table table-hover">
+                            <thead>
+                            <tr>
+                                <th>Ora</th>
+                                <th>Descrizione</th>
+                                <th>Laboratorio</th>
+                                <th>Strumento</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for log in logs %}
+                                <tr>
+                                <td>{{ log.data }}</td>
+                                <td>{{ log.error }}</td>
+                                <td>Ciao! Non funziono!</td>
+                                <td>{{ log.strumName }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
-            <a href="/ricerca" class="btn btn-warning btn-block">Query Avanzata</a>
-        </div>
-    </div>
-    <br>
-    <table class="table table-hover">
-        <thead>
-        <tr>
-            <th>Ora</th>
-            <th>Descrizione</th>
-            <th>Azioni</th>
-        </tr>
-        </thead>
-        <tbody id="corpoTabellaRicerca">
 
-        </tbody>
-    </table>
 {% endblock %}
