@@ -30,7 +30,18 @@
                         <p class="card-text">Esegui operazioni sugli Strumenti del CNR attualmente nel sistema</p>
                         <div class="row">
                             <div class="col-md-4">
-                                <a href="#" class="btn btn-primary btn-block">Lista</a>
+                                <div class="btn-group" role="group">
+                                    <button id="Laboratori" type="button" class="btn btn-primary dropdown-toggle"
+                                            data-toggle="dropdown"
+                                            aria-haspopup="true" aria-expanded="false">
+                                        Laboratorio?
+                                    </button>
+                                    <div class="dropdown-menu" aria-labelledby="Laboratori">
+                                        {% for laboratorio in laboratori %}
+                                            <a href="/list_strumento/{{ laboratorio.lid }}" class="dropdown-item">{{ laboratorio.nome }}</a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
                             </div>
                             <div class="col-md-4">
                                 <a href="/add_strumento" class="btn btn-success btn-block">Aggiungi</a>

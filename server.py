@@ -40,7 +40,7 @@ class Laboratorio(db.Model):
     sede = db.Column(db.String, nullable=True)
     strumenti = db.relationship('Strumento', backref='laboratorio', lazy=True)
     bot = db.relationship("Bot", back_populates="laboratorio")
-    log = db.relationship("Log")
+    log = db.relationship("Log", back_populates="laboratorio")
 
     def __init__(self, nome, sede):
         self.nome = nome
@@ -105,6 +105,7 @@ class Log(db.Model):
     strumento_id = db.Column(db.Integer, nullable=False)
     strumName = db.Column(db.String, nullable=False)
     laboratorio_id = db.Column(db.Integer, db.ForeignKey("laboratorio.lid"))
+    laboratorio = db.relationship("Laboratorio", back_populates="log")
 
     def __init__(self, tipo, error, data, laboratorio_id, strumento_id, strumName):
         self.livello = tipo
@@ -149,7 +150,7 @@ def page_monitoraggio():
     if 'username' not in session or 'username' is None:
         return redirect(url_for('page_login'))
     if request.method == "GET":
-        logs = Log.query.limit(100).all()
+        logs = Log.query.join(Laboratorio).order_by(Log.data.desc()).limit(100).all()
         utente = find_user(session['username'])
         laboratori = Laboratorio.query.all()
         return render_template("monitoraggio.htm", utente=utente, laboratori=laboratori, logs=logs)
@@ -219,6 +220,9 @@ def page_laboratorio_add():
             nuovolaboratorio = Laboratorio(request.form['nome'], request.form['sede'])
             db.session.add(nuovolaboratorio)
             db.session.commit()
+            rete = Strumento(0,"Rete","Oggetto dummy",1,2,0,0,0,nuovolaboratorio.lid)
+            db.session.add(rete)
+            db.session.commit()
             return redirect(url_for('page_dashboard'))
 
 
@@ -241,9 +245,10 @@ def page_laboratorio_details(lid):
         laboratori = Laboratorio.query.all()
         entita = Laboratorio.query.get_or_404(lid)
         strumenti = Laboratorio.query.filter_by(lid=lid).join(Strumento).all()
+        statorete = Log.query.filter_by(laboratorio_id=lid, strumento_id=0).order_by(Log.data.desc()).first()
         logs = Laboratorio.query.filter_by(lid=lid).join(Log).all()  # TODO: Da rimuovoere
         return render_template("/laboratorio/details.htm", utente=utente, laboratori=laboratori, strumenti=strumenti,
-                               logs=logs, entita=entita)
+                               logs=logs, entita=entita, statorete=statorete)
 
 
 @app.route("/add_strumento", methods=['GET', 'POST'])
@@ -275,6 +280,37 @@ def page_strumento_details(sid):
             utente = find_user(session['username'])
             laboratori = Laboratorio.query.all()
             return render_template("/strumenti/details.htm", utente=utente, laboratori=laboratori, strumento=strumento)
+
+
+@app.route("/list_strumento/<int:lid>", methods=["GET"])
+def page_strumento_lista(lid):
+    if 'username' not in session or 'username' is None:
+        abort(403)
+    else:
+        strumenti = Strumento.query.filter_by(laboratorio_id=lid).all()
+        utente = find_user(session['username'])
+        laboratori = Laboratorio.query.all()
+        return render_template("/strumenti/list.htm", utente=utente, laboratori=laboratori, strumenti=strumenti)
+
+
+@app.route('/mod_strumento/<int:sid>', methods=["GET", "POST"])
+def page_mod_strumento(sid):
+    if 'username' not in session:
+        abort(403)
+    else:
+        if request.method == "GET":
+            utente = find_user(session['username'])
+            laboratori = Laboratorio.query.all()
+            entita = Strumento.query.get_or_404(sid)
+            return render_template("/strumenti/mod.htm", utente=utente, laboratori=laboratori, entita=entita)
+        else:
+            entita = Strumento.query.get_or_404(sid)
+            entita.identificatore_esterno = request.form['eid']
+            entita.valore_minimo_allerta = request.form['vmin']
+            entita.valore_massimo_allerta = request.form['vmax']
+            db.session.commit()
+            return redirect(url_for('page_dashboard'))
+
 
 
 @app.route("/list_log/<int:valore>/<int:mode>")
@@ -322,7 +358,7 @@ def page_bot_add():
 @app.route('/ricerca', methods=["GET", "POST"])  # Funzione scritta da Stefano Pigozzi nel progetto Estus
 def page_ricerca():
     if 'username' not in session:
-        return abort(403)
+        abort(403)
     else:
         utente = find_user(session['username'])
         laboratori = Laboratorio.query.all()
@@ -359,14 +395,15 @@ def page_recv_bot():
 @app.route('/add_user', methods=["GET", "POST"])
 def page_add_user():
     if 'username' not in session:
-        return abort(403)
+        abort(403)
     else:
         if request.method == "GET":
             utente = find_user(session['username'])
             laboratori = Laboratorio.query.all()
             return render_template("/user/add.htm", utente=utente, laboratori=laboratori)
         else:
-            nuovo_utente = User(request.form['email'], bcrypt.hashpw(bytes(request.form['password'], encoding="utf-8"), bcrypt.gensalt()), request.form['nome'])
+            cenere = bcrypt.hashpw(bytes(request.form['password'], encoding="utf-8"), bcrypt.gensalt())
+            nuovo_utente = User(request.form['email'], cenere, request.form['nome'])
             db.session.add(nuovo_utente)
             db.session.commit()
             return redirect(url_for('page_dashboard'))
@@ -375,12 +412,32 @@ def page_add_user():
 @app.route('/list_user', methods=["GET"])
 def page_list_user():
     if 'username' not in session:
-        return abort(403)
+        abort(403)
     else:
         utente = find_user(session['username'])
         laboratori = Laboratorio.query.all()
         utenze = User.query.all()
         return render_template("/user/list.htm", utente=utente, laboratori=laboratori, utenze=utenze)
+
+
+@app.route('/mod_user/<int:uid>', methods=["GET", "POST"])
+def page_mod_user(uid):
+    if 'username' not in session:
+        abort(403)
+    else:
+        if request.method == "GET":
+            utente = find_user(session['username'])
+            laboratori = Laboratorio.query.all()
+            entita = User.query.get_or_404(uid)
+            return render_template("/user/mod.htm", utente=utente, laboratori=laboratori, entita=entita)
+        else:
+            entita = User.query.get_or_404(uid)
+            cenere = bcrypt.hashpw(bytes(request.form['password'], encoding="utf-8"), bcrypt.gensalt())
+            entita.passwd = cenere
+            entita.nome = request.form['nome']
+            entita.username = request.form['email']
+            db.session.commit()
+            return redirect(url_for('page_list_user'))
 
 
 if __name__ == "__main__":
@@ -392,4 +449,4 @@ if __name__ == "__main__":
     #    admin = User("admin@admin.com", cenere, "Amministratore")
     #    db.session.add(admin)
     #    db.session.commit()
-    app.run()
+    app.run(host="0.0.0.0", debug=False)

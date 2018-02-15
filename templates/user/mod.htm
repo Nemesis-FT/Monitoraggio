@@ -1,19 +1,19 @@
 {% extends "stampo.htm" %}
-{% block title %}Nuovo Utente - Monitoraggio{% endblock %}
+{% block title %}Modifica Utente - Monitoraggio{% endblock %}
 {% block content %}
-    <form action="/add_user" method="POST">
+    <form action="/mod_user/{{ entita.uid }}" method="POST">
         <div class="form-row">
             <div class="form-group col-md-4">
                 <label for="email" class="col-form-label">Email utente</label>
-                <input type="text" class="form-control" id="email" placeholder="nome.cognome@qualcosa.it" name="email">
+                <input type="text" class="form-control" id="email" value="{{ entita.username }}" name="email">
             </div>
             <div class="form-group col-md-4">
                 <label for="nome" class="col-form-label">Nome e cognome</label>
-                <input type="text" class="form-control" id="nome" placeholder="Rossi Mario" name="nome">
+                <input type="text" class="form-control" id="nome" value="{{ entita.nome }}" name="nome">
             </div>
             <div class="form-group col-md-4">
                 <label for="password" class="col-form-label">Password</label>
-                <input type="password" class="form-control" id="password" placeholder="password" name="password">
+                <input type="password" class="form-control" id="password" value="{{ entita.password }}" name="password">
             </div>
         </div>
         <div class="form-group row">

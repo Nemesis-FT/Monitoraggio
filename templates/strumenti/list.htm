@@ -1,0 +1,26 @@
+{% extends "stampo.htm" %}
+{% block title %}Lista Strumenti - Monitoraggio{% endblock %}
+{% block content %}
+    <h1>Lista degli Strumenti</h1>
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            <th>Nome</th>
+            <th>Identificatore</th>
+            <th>Valori di allerta</th>
+            <th>Azioni</th>
+        </tr>
+        </thead>
+        {% for strumento in strumenti %}
+            <tr>
+                <td>{{ strumento.nome }}</td>
+                <td>{{ strumento.identificatore_esterno }}</td>
+                <td>{{ strumento.valore_minimo_allerta }} - {{ strumento.valore_massimo_allerta }}</td>
+                <td><a href="/list_log/{{ strumento.sid }}/0"><i class="fas fa-book" aria-hidden="true"></i></a> <a
+                        href="/details_strumento/{{ strumento.sid }}"><i class="fas fa-search"
+                                                                         aria-hidden="true"></i></a> <i
+                        class="fas fa-times" aria-hidden="true"></i> <a href="/mod_strumento/{{ strumento.sid }}"><i class="fas fa-pencil-alt"></i></a></td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
