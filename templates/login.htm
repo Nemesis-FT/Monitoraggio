@@ -3,7 +3,8 @@
 {% block content %}
     <div class="jumbotron">
         <h1 class="display-3">Accesso a Monitoraggio</h1>
-        <p class="lead">Per accedere al servizio di allerta strumenti del Monte Cimone, eseguire l'accesso con le proprie credenziali.</p>
+        <p class="lead">Per accedere al servizio di allerta strumenti del Consiglio Nazionale Ricerche, eseguire l'accesso con le
+            proprie credenziali.</p>
         <hr class="my-4">
         <p></p>
         <p class="lead">
@@ -24,7 +25,15 @@
                 </form>
             </div>
             <div class="col-md-6">
-                Metti i loghi qui
+                <div class="row">
+                    <div class="col-md-6">
+                <img width="100%" alt="condivisione-logo" src="{{ url_for('static', filename='cnr.png') }}">
+                    </div>
+                    <div class="col-md-6">
+                <img width="100%" alt="condivisione-logo" src="{{ url_for('static', filename='LogoFermiHiDef.png') }}">
+                    </div>
+                </div>
+                <img width="100%" alt="condivisione-logo" src="{{ url_for('static', filename='Fermitech.png') }}">
             </div>
         </div>
     </div>
