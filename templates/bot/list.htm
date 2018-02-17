@@ -16,7 +16,7 @@
                 <td>{{ bot.nome }}</td>
                 <td>{{ bot.laboratorio.nome }}</td>
                 <td>{{ bot.token }}</td>
-                <td></td>
+                <td><a href="/delete_from_database/0/{{ bot.bid }}"><i class="fas fa-times" aria-hidden="true"></i></a></td>
             </tr>
         {% endfor %}
     </table>

@@ -1,0 +1,22 @@
+{% extends "stampo.htm" %}
+{% block extrahead %}
+    <script>
+        window.onload = function () {
+            var tipo = document.getElementById("oggetto").innerHTML;
+            console.log(tipo)
+            if (tipo == "\n" +
+                "        Laboratorio") {
+                alert("Stai per eliminare un Laboratorio. Questa procedura eliminerà qualsiasi Log, Bot, Strumento ad esso collegato.")
+            }
+        };
+    </script>
+{% endblock %}
+{% block title %}Eliminazione - Monitoraggio{% endblock %}
+{% block content %}
+    <h1>Stai per eliminare un oggetto di tipo <p id="oggetto">{% if object == 0 %}Bot{% elif object == 1 %}
+        Laboratorio{% elif object == 2 %}Strumento{% elif object == 3 %}Utente{% else %}Ignoto{% endif %}</p></h1>
+    <h2>Se non desideri eliminare l'oggetto, torna indietro.</h2>
+    <form action="/delete_from_database/{{ object }}/{{ id }}" method="POST">
+        <button type="submit" class="btn btn-warning btn-block">So quello che sto facendo e desidero eliminare l'oggetto.</button>
+    </form>
+{% endblock %}

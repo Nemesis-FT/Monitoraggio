@@ -10,6 +10,7 @@
                 <h5>Ultimo messaggio dalla rete:<br>{{ statorete.data }}-{{ statorete.error }}</h5>
             </div>
             <a href="/list_log/{{ entita.lid }}/1" class="btn btn-primary btn-block">Lista log</a>
+            <a href="/delete_from_database/1/{{ entita.lid }}" class="btn btn-danger btn-block">Elimina Laboratorio</a>
         </div>
         {% if strumenti %}
         <div class="col-md-6">
@@ -27,7 +28,7 @@
                         <td>{{ strumento.nome }}</td>
                         <td>{{ strumento.identificatore_esterno }}</td>
                         <td>{{ strumento.valore_minimo_allerta }} - {{ strumento.valore_massimo_allerta }}</td>
-                        <td> <a href="/list_log/{{ strumento.sid }}/0"><i class="fas fa-book" aria-hidden="true"></i></a> <a href="/details_strumento/{{ strumento.sid }}"><i class="fas fa-search" aria-hidden="true"></i></a> <a href="/mod_strumento/{{ strumento.sid }}"><i class="fas fa-pencil-alt"></i></a> <i class="fas fa-times" aria-hidden="true"></i></td>
+                        <td> <a href="/list_log/{{ strumento.sid }}/0"><i class="fas fa-book" aria-hidden="true"></i></a> <a href="/details_strumento/{{ strumento.sid }}"><i class="fas fa-search" aria-hidden="true"></i></a> <a href="/mod_strumento/{{ strumento.sid }}"><i class="fas fa-pencil-alt"></i></a> <a href="/delete_from_database/2/{{ strumento.sid }}"><i class="fas fa-times" aria-hidden="true"></i></a></td>
                     </tr>
                 {% endfor %}
             </table>

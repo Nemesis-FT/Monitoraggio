@@ -17,9 +17,7 @@
                 <td>{{ strumento.identificatore_esterno }}</td>
                 <td>{{ strumento.valore_minimo_allerta }} - {{ strumento.valore_massimo_allerta }}</td>
                 <td><a href="/list_log/{{ strumento.sid }}/0"><i class="fas fa-book" aria-hidden="true"></i></a> <a
-                        href="/details_strumento/{{ strumento.sid }}"><i class="fas fa-search"
-                                                                         aria-hidden="true"></i></a> <i
-                        class="fas fa-times" aria-hidden="true"></i> <a href="/mod_strumento/{{ strumento.sid }}"><i class="fas fa-pencil-alt"></i></a></td>
+                        href="/details_strumento/{{ strumento.sid }}"><i class="fas fa-search" aria-hidden="true"></i></a> <a href="/mod_strumento/{{ strumento.sid }}"><i class="fas fa-pencil-alt"></i></a><a href="/delete_from_database/2/{{ strumento.sid }}"><i class="fas fa-times" aria-hidden="true"></i></a></td>
             </tr>
         {% endfor %}
     </table>

@@ -156,7 +156,7 @@ def page_monitoraggio():
         return render_template("monitoraggio.htm", utente=utente, laboratori=laboratori, logs=logs)
 
 
-@app.route("/strumquery", methods=['POST']) # Queste funzioni sono orrende.
+@app.route("/strumquery", methods=['POST'])  # Queste funzioni sono orrende.
 def page_strumquery():
     if 'username' not in session or 'username' is None:
         abort(403)
@@ -164,7 +164,8 @@ def page_strumquery():
     risultato = Strumento.query.filter_by(laboratorio_id=request.form['lab']).all()
     msg = ""
     for entita in risultato:
-        msg = msg + "<a class=\"dropdown-item\" onclick=\"strumsense(" + str(entita.sid) + ")\">" + entita.nome + "</a>\n"
+        msg = msg + "<a class=\"dropdown-item\" onclick=\"strumsense(" + str(
+            entita.sid) + ")\">" + entita.nome + "</a>\n"
     return msg
 
 
@@ -220,7 +221,7 @@ def page_laboratorio_add():
             nuovolaboratorio = Laboratorio(request.form['nome'], request.form['sede'])
             db.session.add(nuovolaboratorio)
             db.session.commit()
-            rete = Strumento(0,"Rete","Oggetto dummy",1,2,0,0,0,nuovolaboratorio.lid)
+            rete = Strumento(0, "Rete", "Oggetto dummy", 1, 2, 0, 0, 0, nuovolaboratorio.lid)
             db.session.add(rete)
             db.session.commit()
             return redirect(url_for('page_dashboard'))
@@ -312,7 +313,6 @@ def page_mod_strumento(sid):
             return redirect(url_for('page_dashboard'))
 
 
-
 @app.route("/list_log/<int:valore>/<int:mode>")
 def page_log_list(valore, mode):
     if 'username' not in session or 'username' is None:
@@ -368,8 +368,10 @@ def page_ricerca():
             try:
                 result = db.engine.execute("SELECT " + request.form["query"] + ";")
             except Exception as e:
-                return render_template("query.htm", query=request.form["query"], error=repr(e), utente=utente, laboratori=laboratori)
-            return render_template("query.htm", query=request.form["query"], result=result, utente=utente, laboratori=laboratori)
+                return render_template("query.htm", query=request.form["query"], error=repr(e), utente=utente,
+                                       laboratori=laboratori)
+            return render_template("query.htm", query=request.form["query"], result=result, utente=utente,
+                                   laboratori=laboratori)
 
 
 @app.route('/recv_bot', methods=["POST"])
@@ -440,13 +442,64 @@ def page_mod_user(uid):
             return redirect(url_for('page_list_user'))
 
 
+@app.route('/mod_bot/<int:bid>', methods=["GET"])
+def page_mod_bot(bid):
+    if 'username' not in session:
+        abort(403)
+    else:
+        bot = Bot.query.get_or_404(bid)
+        bot.token = id_generator()
+        db.session.commit()
+        return redirect(url_for('page_list_bot'))
+
+
+@app.route('/delete_from_database/<int:object>/<int:id>', methods=["GET", "POST"])
+def paage_delete(object, id):
+    if 'username' not in session:
+        abort(403)
+    else:
+        if request.method == "GET":
+            utente = find_user(session['username'])
+            laboratori = Laboratorio.query.all()
+            return render_template("/delete.htm", utente=utente, laboratori=laboratori, object=object, id=id)
+        else:
+            if object == 0: # Bot
+                bot = Bot.query.get_or_404(id)
+                db.session.delete(bot)
+                db.session.commit()
+                return redirect(url_for('page_list_bot'))
+            elif object == 1: #Laboratorio
+                print("lab")
+                laboratorio = Laboratorio.query.get_or_404(id)
+                for oggetto in laboratorio.bot:
+                    db.session.delete(oggetto)
+                for oggetto in laboratorio.strumenti:
+                    db.session.delete(oggetto)
+                for oggetto in laboratorio.log:
+                    db.session.delete(oggetto)
+                db.session.delete(laboratorio)
+                db.session.commit()
+                return redirect(url_for('page_laboratorio_list'))
+            elif object == 2: #Strumento
+                strumento = Strumento.query.get_or_404(id)
+                db.session.delete(strumento)
+                db.session.commit()
+                return redirect(url_for('page_strumento_lista'))
+            elif object == 3: #Utente
+                utente = User.query.get_or_404(id)
+                db.session.delete(utente)
+                db.session.commit()
+                return redirect(url_for('page_list_user'))
+            else:
+                abort(404)
+
 if __name__ == "__main__":
     # Se non esiste il database viene creato
-    # if not os.path.isfile("db.sqlite"):
-    #    db.create_all()
-    #    p = bytes("password", encoding="utf-8")
-    #    cenere = bcrypt.hashpw(p, bcrypt.gensalt())
-    #    admin = User("admin@admin.com", cenere, "Amministratore")
-    #    db.session.add(admin)
-    #    db.session.commit()
+    if not os.path.isfile("db.sqlite"):
+       db.create_all()
+       p = bytes("password", encoding="utf-8")
+       cenere = bcrypt.hashpw(p, bcrypt.gensalt())
+       admin = User("admin@admin.com", cenere, "Amministratore")
+       db.session.add(admin)
+       db.session.commit()
     app.run(host="0.0.0.0", debug=False)

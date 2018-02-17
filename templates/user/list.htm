@@ -14,7 +14,7 @@
             <tr>
                 <td>{{ utenza.nome }}</td>
                 <td>{{ utenza.username }}</td>
-                <td><a href="/mod_user/{{ utenza.uid }}"><i class="fas fa-pencil-alt"></i></a></td>
+                <td><a href="/mod_user/{{ utenza.uid }}"><i class="fas fa-pencil-alt"></i></a><a href="/delete_from_database/3/{{ utenza.uid }}"><i class="fas fa-times" aria-hidden="true"></i></a></td>
             </tr>
         {% endfor %}
     </table>
