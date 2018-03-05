@@ -99,7 +99,7 @@ class Bot(db.Model):
 class Log(db.Model):
     __tablename__ = "log"
     loid = db.Column(db.Integer, primary_key=True)
-    livello = db.Column(db.Integer, nullable=False)
+    errorId = db.Column(db.String, nullable=False)
     error = db.Column(db.String, nullable=False)
     data = db.Column(db.DateTime, nullable=True)  # Solo per scopo di test
     strumento_id = db.Column(db.Integer, nullable=False)
@@ -107,8 +107,8 @@ class Log(db.Model):
     laboratorio_id = db.Column(db.Integer, db.ForeignKey("laboratorio.lid"))
     laboratorio = db.relationship("Laboratorio", back_populates="log")
 
-    def __init__(self, tipo, error, data, laboratorio_id, strumento_id, strumName):
-        self.livello = tipo
+    def __init__(self, errorId, error, data, laboratorio_id, strumento_id, strumName):
+        self.errorId = errorId
         self.error = error
         self.data = data
         self.laboratorio_id = laboratorio_id
@@ -247,9 +247,8 @@ def page_laboratorio_details(lid):
         entita = Laboratorio.query.get_or_404(lid)
         strumenti = Laboratorio.query.filter_by(lid=lid).join(Strumento).all()
         statorete = Log.query.filter_by(laboratorio_id=lid, strumento_id=0).order_by(Log.data.desc()).first()
-        logs = Laboratorio.query.filter_by(lid=lid).join(Log).all()  # TODO: Da rimuovoere
         return render_template("/laboratorio/details.htm", utente=utente, laboratori=laboratori, strumenti=strumenti,
-                               logs=logs, entita=entita, statorete=statorete)
+                               entita=entita, statorete=statorete)
 
 
 @app.route("/add_strumento", methods=['GET', 'POST'])
@@ -379,12 +378,12 @@ def page_recv_bot():
     labId = request.form['labId']
     token = request.form['token']
     strum_id = request.form['strumId']
-    message = request.form['message']
-    type = request.form['type']
+    event = request.form['event']
+    eventId = request.form['eventId']
     if Bot.query.filter_by(laboratorio_id=labId, token=token).all():
         strumento = Strumento.query.filter_by(identificatore_esterno=strum_id, laboratorio_id=labId).first()
         if strumento:
-            nuovolog = Log(type, message, datetime.today(), labId, strumento.sid, strumento.nome)
+            nuovolog = Log(eventId, event, datetime.today(), labId, strumento.sid, strumento.nome)
             db.session.add(nuovolog)
             db.session.commit()
             return "200 - QUERY OK, DATA INSERT SUCCESSFUL."
@@ -450,7 +449,7 @@ def page_mod_bot(bid):
         bot = Bot.query.get_or_404(bid)
         bot.token = id_generator()
         db.session.commit()
-        return redirect(url_for('page_list_bot'))
+        return redirect(url_for('page_bot_list'))
 
 
 @app.route('/delete_from_database/<int:object>/<int:id>', methods=["GET", "POST"])
@@ -463,12 +462,12 @@ def paage_delete(object, id):
             laboratori = Laboratorio.query.all()
             return render_template("/delete.htm", utente=utente, laboratori=laboratori, object=object, id=id)
         else:
-            if object == 0: # Bot
+            if object == 0:  # Bot
                 bot = Bot.query.get_or_404(id)
                 db.session.delete(bot)
                 db.session.commit()
                 return redirect(url_for('page_list_bot'))
-            elif object == 1: #Laboratorio
+            elif object == 1:  # Laboratorio
                 print("lab")
                 laboratorio = Laboratorio.query.get_or_404(id)
                 for oggetto in laboratorio.bot:
@@ -480,12 +479,12 @@ def paage_delete(object, id):
                 db.session.delete(laboratorio)
                 db.session.commit()
                 return redirect(url_for('page_laboratorio_list'))
-            elif object == 2: #Strumento
+            elif object == 2:  # Strumento
                 strumento = Strumento.query.get_or_404(id)
                 db.session.delete(strumento)
                 db.session.commit()
                 return redirect(url_for('page_strumento_lista'))
-            elif object == 3: #Utente
+            elif object == 3:  # Utente
                 utente = User.query.get_or_404(id)
                 db.session.delete(utente)
                 db.session.commit()
@@ -493,13 +492,14 @@ def paage_delete(object, id):
             else:
                 abort(404)
 
+
 if __name__ == "__main__":
     # Se non esiste il database viene creato
     if not os.path.isfile("db.sqlite"):
-       db.create_all()
-       p = bytes("password", encoding="utf-8")
-       cenere = bcrypt.hashpw(p, bcrypt.gensalt())
-       admin = User("admin@admin.com", cenere, "Amministratore")
-       db.session.add(admin)
-       db.session.commit()
+        db.create_all()
+        p = bytes("password", encoding="utf-8")
+        cenere = bcrypt.hashpw(p, bcrypt.gensalt())
+        admin = User("admin@admin.com", cenere, "Amministratore")
+        db.session.add(admin)
+        db.session.commit()
     app.run(host="0.0.0.0", debug=False)
