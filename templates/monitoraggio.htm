@@ -121,7 +121,7 @@
                             <tbody>
                             {% for log in logs %}
                                 <tr>
-                                <td>{{ log.data }}</td>
+                                <td>{{ log.data.day }}/{{ log.data.month }}/{{ log.data.year }} {{ log.data.hour }}:{{ log.data.minute }}:{{ log.data.second }}</td>
                                 <td>{{ log.error }}</td>
                                 <td>{{ log.laboratorio.nome }}</td>
                                 <td>{{ log.strumName }}</td>

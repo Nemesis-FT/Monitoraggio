@@ -1,6 +1,7 @@
 {% extends "stampo.htm" %}
 {% block title %}Modifica Strumento - Monitoraggio{% endblock %}
 {% block content %}
+    {% if entita.identificatore_esterno != 0 %}
     <form action="/mod_strumento/{{ entita.sid }}" method="POST">
         <div class="form-row">
             <div class="form-group col-md-4">
@@ -22,4 +23,8 @@
             </div>
         </div>
     </form>
+    {% else %}
+    <h1>Per ragioni interne,</h1>
+    <h2>Non è possibile eseguire quest'operazione sul dispositivo. Spiacente.</h2>
+    {% endif %}
 {% endblock %}

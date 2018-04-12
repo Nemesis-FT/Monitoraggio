@@ -6,12 +6,14 @@ from datetime import datetime, date, timedelta
 import os
 import random
 import string
+import requests
 
 app = Flask(__name__)
 app.secret_key = "sgozzoli"
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+telegram_token = "545982698:AAFl0dzpz1g4J4B4pLAJzg2VQkmw9FFesrs"
 
 
 # Classi del database
@@ -246,7 +248,7 @@ def page_laboratorio_details(lid):
         laboratori = Laboratorio.query.all()
         entita = Laboratorio.query.get_or_404(lid)
         strumenti = Laboratorio.query.filter_by(lid=lid).join(Strumento).all()
-        statorete = Log.query.filter_by(laboratorio_id=lid, strumento_id=0).order_by(Log.data.desc()).first()
+        statorete = Log.query.filter_by(laboratorio_id=lid, strumName="Rete").order_by(Log.data.desc()).first()
         return render_template("/laboratorio/details.htm", utente=utente, laboratori=laboratori, strumenti=strumenti,
                                entita=entita, statorete=statorete)
 
@@ -386,6 +388,10 @@ def page_recv_bot():
             nuovolog = Log(eventId, event, datetime.today(), labId, strumento.sid, strumento.nome)
             db.session.add(nuovolog)
             db.session.commit()
+            laboratorio = Laboratorio.query.filter_by(lid=labId).first()
+            testo = "{}/{}/{} {}:{}\n{}, {}\n{} - {}".format(nuovolog.data.day, nuovolog.data.month, nuovolog.data.year, nuovolog.data.hour, nuovolog.data.minute, laboratorio.nome, strumento.nome, eventId, event)
+            param = {"chat_id": 139142467, "text": testo}
+            requests.get("https://api.telegram.org/bot" + telegram_token + "/sendMessage", params=param)
             return "200 - QUERY OK, DATA INSERT SUCCESSFUL."
         else:
             abort(404)
