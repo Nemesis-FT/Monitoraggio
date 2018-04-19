@@ -162,7 +162,7 @@ def page_strumquery():
     if 'username' not in session or 'username' is None:
         abort(403)
     print(request.form['lab'])
-    risultato = Strumento.query.filter_by(laboratorio_id=request.form['lab']).all()
+    risultato = Strumento.query.filter_by(laboratorio_id=request.form['lab']).order_by(Log.data.desc()).all()
     msg = ""
     for entita in risultato:
         msg = msg + "<a class=\"dropdown-item\" onclick=\"strumsense(" + str(
@@ -321,9 +321,9 @@ def page_log_list(valore, mode):
         utente = find_user(session['username'])
         laboratori = Laboratorio.query.all()
         if mode == 0:  # ricerca per strumento
-            logs = Log.query.filter_by(strumento_id=valore).all()
+            logs = Log.query.filter_by(strumento_id=valore).order_by(Log.data.desc()).all()
         else:
-            logs = Log.query.filter_by(laboratorio_id=valore).all()
+            logs = Log.query.filter_by(laboratorio_id=valore).order_by(Log.data.desc()).all()
         return render_template("/log/list.htm", utente=utente, laboratori=laboratori, logs=logs)
 
 
