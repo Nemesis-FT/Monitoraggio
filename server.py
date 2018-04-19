@@ -13,12 +13,6 @@ app.secret_key = "sgozzoli"
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
-chiavi = open("telegramkey.txt", 'r')
-output = chiavi.readlines()
-telegram_token = output[0]
-identificatori = open("chatids.txt", 'r')
-dati = identificatori.readline()
-identificatori_chat = dati.split("|")
 
 
 # Classi del database
@@ -382,6 +376,10 @@ def page_ricerca():
 
 @app.route('/recv_bot', methods=["POST"])
 def page_recv_bot():
+    chiavi = open("telegramkey.txt", 'r')
+    output = chiavi.readlines()
+    telegram_token = output[0]
+    identificatori_chat = []
     labId = request.form['labId']
     token = request.form['token']
     strum_id = request.form['strumId']
