@@ -9,13 +9,13 @@ import string
 import requests
 
 app = Flask(__name__)
-app.secret_key = "sgozzoli"
+app.secret_key = "dacambiare" #chiave per la cifratura dei cookie
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 
-# Classi del database
+# Classi del database, seguono le definizioni delle tabelle
 
 
 class User(db.Model):
@@ -120,11 +120,14 @@ class Log(db.Model):
         return "{}-{}-{}".format(self.loid, self.laboratorio_id, self.data)
 
 
-def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
+# Funzioni di utility del sito
+
+
+def id_generator(size=6, chars=string.ascii_uppercase + string.digits):  # Generatore di token
     return ''.join(random.choice(chars) for _ in range(size))
 
 
-def login(username, password):
+def login(username, password):  # Funzione di controllo credenziali
     user = User.query.filter_by(username=username).first()
     try:
         return bcrypt.checkpw(bytes(password, encoding="utf-8"), user.passwd)
@@ -133,31 +136,34 @@ def login(username, password):
         return False
 
 
-def find_user(username):
+def find_user(username):  # Restituisce l'utente corrispondente all'username
     return User.query.filter_by(username=username).first()
 
 
-@app.route("/")
+# Pagine del sito
+
+
+@app.route("/")  # Radice del sito, viene usata per il logoff
 def page_home():
     if 'username' not in session:
         return redirect(url_for('page_login'))
     else:
-        session.pop('username')
+        session.pop('username')  # Logoff
         return redirect(url_for('page_login'))
 
 
 @app.route("/monitoraggio", methods=["GET", "POST"])
 def page_monitoraggio():
-    if 'username' not in session or 'username' is None:
+    if 'username' not in session or 'username' is None:  # Verifica accesso
         return redirect(url_for('page_login'))
     if request.method == "GET":
-        logs = Log.query.join(Laboratorio).order_by(Log.data.desc()).limit(100).all()
+        logs = Log.query.join(Laboratorio).order_by(Log.data.desc()).limit(100).all()  # Log recenti
         utente = find_user(session['username'])
         laboratori = Laboratorio.query.all()
         return render_template("monitoraggio.htm", utente=utente, laboratori=laboratori, logs=logs)
 
 
-@app.route("/strumquery", methods=['POST'])  # Queste funzioni sono orrende.
+@app.route("/strumquery", methods=['POST'])  # Funzione per la ricerca dinamica
 def page_strumquery():
     if 'username' not in session or 'username' is None:
         abort(403)
@@ -170,7 +176,7 @@ def page_strumquery():
     return msg
 
 
-@app.route("/logquery", methods=['POST'])
+@app.route("/logquery", methods=['POST'])  # Funzione per la ricerca dinamica
 def page_logquery():
     if 'username' not in session or 'username' is None:
         abort(403)
@@ -192,8 +198,8 @@ def page_login():
     if request.method == "GET":
         return render_template("login.htm")
     else:
-        if login(request.form['username'], request.form['password']):
-            session['username'] = request.form['username']
+        if login(request.form['username'], request.form['password']):  # Autenticazione
+            session['username'] = request.form['username']  # Aggiunta dell'utente alla sessione attiva
             return redirect(url_for('page_monitoraggio'))
         else:
             abort(403)
@@ -222,7 +228,7 @@ def page_laboratorio_add():
             nuovolaboratorio = Laboratorio(request.form['nome'], request.form['sede'])
             db.session.add(nuovolaboratorio)
             db.session.commit()
-            rete = Strumento(0, "Rete", "Oggetto dummy", 1, 2, 0, 0, 0, nuovolaboratorio.lid)
+            rete = Strumento(0, "Rete", "Oggetto dummy", 1, 2, 0, 0, 0, nuovolaboratorio.lid)  # Nota importante: questo strumento serve per i messaggi della connettività e viene creato a tal proposito. Non è possibile modificarlo.
             db.session.add(rete)
             db.session.commit()
             return redirect(url_for('page_dashboard'))
@@ -376,9 +382,7 @@ def page_ricerca():
 
 @app.route('/recv_bot', methods=["POST"])
 def page_recv_bot():
-    chiavi = open("telegramkey.txt", 'r')
-    output = chiavi.readlines()
-    telegram_token = output[0]
+    telegram_token = ""
     identificatori_chat = []
     labId = request.form['labId']
     token = request.form['token']
@@ -396,7 +400,6 @@ def page_recv_bot():
                                                              nuovolog.data.hour, nuovolog.data.minute, laboratorio.nome,
                                                              strumento.nome, eventId, event)
             for chat in identificatori_chat:
-                print(chat)
                 param = {"chat_id": chat, "text": testo}
                 requests.get("https://api.telegram.org/bot" + telegram_token + "/sendMessage", params=param)
             return "200 - QUERY OK, DATA INSERT SUCCESSFUL."
