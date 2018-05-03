@@ -7,7 +7,6 @@
         <tr>
             <th>Nome</th>
             <th>Identificatore</th>
-            <th>Valori di allerta</th>
             <th>Azioni</th>
         </tr>
         </thead>
@@ -15,7 +14,6 @@
             <tr>
                 <td>{{ strumento.nome }}</td>
                 <td>{{ strumento.identificatore_esterno }}</td>
-                <td>{{ strumento.valore_minimo_allerta }} - {{ strumento.valore_massimo_allerta }}</td>
                 <td><a href="/list_log/{{ strumento.sid }}/0"><i class="fas fa-book" aria-hidden="true"></i></a> <a
                         href="/details_strumento/{{ strumento.sid }}"><i class="fas fa-search" aria-hidden="true"></i></a> <a href="/mod_strumento/{{ strumento.sid }}"><i class="fas fa-pencil-alt"></i></a><a href="/delete_from_database/2/{{ strumento.sid }}"><i class="fas fa-times" aria-hidden="true"></i></a></td>
             </tr>

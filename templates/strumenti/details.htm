@@ -7,6 +7,5 @@
         <li class="list-group-item"><strong>Marca e modello: </strong>{{ strumento.marca }} / {{ strumento.modello }}</li>
         <li class="list-group-item"><strong>Protocollo di comunicazione: </strong>{% if strumento.proto == 1 %}Seriale{% else %}Lan{% endif %}</li>
         <li class="list-group-item"><strong>Laboratorio</strong>: {{ strumento.laboratorio.nome }}</li>
-        <li class="list-group-item"><strong>Valore fondo scala e valori di allerta: </strong>{{ strumento.valore_massimo }}, {{ strumento.valore_minimo_allerta }} (minimo)/{{ strumento.valore_massimo_allerta }}</li>
     </ul>
 {% endblock %}

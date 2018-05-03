@@ -59,22 +59,15 @@ class Strumento(db.Model):
     marca = db.Column(db.String, nullable=True)
     modello = db.Column(db.String, nullable=True)
     proto = db.Column(db.Integer, nullable=True)
-    valore_massimo = db.Column(db.Float, nullable=False)
-    valore_minimo_allerta = db.Column(db.Float, nullable=False)
-    valore_massimo_allerta = db.Column(db.Float, nullable=False)
     laboratorio_id = db.Column(db.Integer, db.ForeignKey('laboratorio.lid'), nullable=False)
 
-    def __init__(self, idee, nome, marca, modello, proto, fs, valore_minimo_allerta,
-                 valore_massimo_allerta, laboratorio_id):
+    def __init__(self, idee, nome, marca, modello, proto, laboratorio_id):
         self.identificatore_esterno = idee
         self.nome = nome
         self.marca = marca
         self.modello = modello
         self.proto = proto
-        self.valore_minimo_allerta = valore_minimo_allerta
-        self.valore_massimo_allerta = valore_massimo_allerta
         self.laboratorio_id = laboratorio_id
-        self.valore_massimo = fs
 
     def __repr__(self):
         return "{}-{}-{}".format(self.sid, self.identificatore_esterno, self.nome)
@@ -228,8 +221,11 @@ def page_laboratorio_add():
             nuovolaboratorio = Laboratorio(request.form['nome'], request.form['sede'])
             db.session.add(nuovolaboratorio)
             db.session.commit()
-            rete = Strumento(0, "Rete", "Oggetto dummy", 1, 2, 0, 0, 0, nuovolaboratorio.lid)  # Nota importante: questo strumento serve per i messaggi della connettività e viene creato a tal proposito. Non è possibile modificarlo.
+            rete = Strumento(0, "Rete", "Oggetto dummy", 1, 2, nuovolaboratorio.lid)  # Nota importante: questo strumento serve per i messaggi della connettività e viene creato a tal proposito. Non è possibile modificarlo.
             db.session.add(rete)
+            db.session.commit()
+            logdummy = Log("0", "Rete Creata", datetime.now(), nuovolaboratorio.lid, 0, "Rete")
+            db.session.add(logdummy)
             db.session.commit()
             return redirect(url_for('page_dashboard'))
 
@@ -269,8 +265,7 @@ def page_strumento_add():
             return render_template("/strumenti/add.htm", utente=utente, laboratori=laboratori)
         else:
             nuovo_strumento = Strumento(request.form['iden'], request.form['nome'], request.form['marca'],
-                                        request.form['modello'], request.form['proto'], request.form['fs'],
-                                        request.form['vma'], request.form['vMa'],
+                                        request.form['modello'], request.form['proto'],
                                         request.form['lab'])
             db.session.add(nuovo_strumento)
             db.session.commit()
@@ -313,8 +308,6 @@ def page_mod_strumento(sid):
         else:
             entita = Strumento.query.get_or_404(sid)
             entita.identificatore_esterno = request.form['eid']
-            entita.valore_minimo_allerta = request.form['vmin']
-            entita.valore_massimo_allerta = request.form['vmax']
             db.session.commit()
             return redirect(url_for('page_dashboard'))
 
@@ -496,6 +489,8 @@ def paage_delete(object, id):
                 db.session.commit()
                 return redirect(url_for('page_laboratorio_list'))
             elif object == 2:  # Strumento
+                if id == 0:
+                    abort(403)
                 strumento = Strumento.query.get_or_404(id)
                 db.session.delete(strumento)
                 db.session.commit()
