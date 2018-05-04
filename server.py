@@ -161,7 +161,7 @@ def page_strumquery():
     if 'username' not in session or 'username' is None:
         abort(403)
     print(request.form['lab'])
-    risultato = Strumento.query.filter_by(laboratorio_id=request.form['lab']).order_by(Log.data.desc()).all()
+    risultato = Strumento.query.filter_by(laboratorio_id=request.form['lab']).all()
     msg = ""
     for entita in risultato:
         msg = msg + "<a class=\"dropdown-item\" onclick=\"strumsense(" + str(
