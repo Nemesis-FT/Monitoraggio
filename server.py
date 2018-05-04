@@ -173,7 +173,7 @@ def page_strumquery():
 def page_logquery():
     if 'username' not in session or 'username' is None:
         abort(403)
-    risultato = Log.query.filter_by(strumento_id=request.form['strum']).all()
+    risultato = Log.query.filter_by(strumento_id=request.form['strum']).order_by(Log.data.desc()).all()
     msg = ""
     for entita in risultato:
         msg = msg + """
